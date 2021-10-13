@@ -150,13 +150,13 @@ async function getPage(page) {
     'list',
     `https://ingatlan.com/lista/elado+haz+80-m2-felett+csak-kepes+pest-megye-buda-kornyeke+pest-megye-pest-kornyeke+budapest+pest-megye+budapest-pesti-oldal+budapest-budai-oldal+850-m2telek-alatt+csaladi-haz+konnyuszerkezetes-haz+3-szoba-felett+45-mFt-ig?page=${page}`,
   );
-  const html = new jsdom.JSDOM(body);
+  let html = new jsdom.JSDOM(body);
   const items = [...html.window.document.querySelectorAll(".listing.js-listing")];
   const result = items.map(parseListItem);
 
   for (let i = 0; i < result.length; i++) {
     const advert = await download('match', result[i].url);
-    const advertHtml = new jsdom.JSDOM(advert);
+    let advertHtml = new jsdom.JSDOM(advert);
     const parameters = [...advertHtml.window.document.querySelector("dl.parameters").querySelectorAll(".parameter")];
     const paramObject = parameters.map(parseParams).reduce(convertParamsReducer, {});
 
@@ -164,7 +164,11 @@ async function getPage(page) {
       ...result[i],
       ...paramObject,
     };
+
+    advertHtml = undefined;
   }
+
+  html = undefined;
 
   return result;
 }
@@ -176,6 +180,7 @@ async function getPage(page) {
   do {
     singleResult = await getPage(counter++);
     result = [...result, ...singleResult];
+    await new Promise((resolve) => setTimeout(resolve, 500)).then(() => console.log('Delayed'));
   } while (singleResult?.length >= 20);
 
   // const result = [...(await getPage(1)), ...(await getPage(2))];
