@@ -110,9 +110,23 @@ const parseListItem = (item) => {
   };
 };
 
+const parseParams = (param) => {
+  return {
+    name: param.querySelector(".parameterName").textContent.trim(),
+    value: param.querySelector(".parameterValue").textContent.trim(),
+  };
+};
+
+const convertParamsReducer = (acc, curr) => {
+  return {
+    ...acc,
+    [curr.name]: curr.value,
+  };
+};
+
 (async () => {
   const body = await download(
-    "https://ingatlan.com/lista/elado+haz+80-m2-felett+csak-kepes+pest-megye-buda-kornyeke+pest-megye-pest-kornyeke+budapest+pest-megye+budapest-pesti-oldal+budapest-budai-oldal+850-m2telek-alatt+csaladi-haz+konnyuszerkezetes-haz+3-szoba-felett+45-mFt-ig?page=2",
+    "https://ingatlan.com/lista/elado+haz+80-m2-felett+csak-kepes+pest-megye-buda-kornyeke+pest-megye-pest-kornyeke+budapest+pest-megye+budapest-pesti-oldal+budapest-budai-oldal+850-m2telek-alatt+csaladi-haz+konnyuszerkezetes-haz+3-szoba-felett+45-mFt-ig?page=1",
   );
   const html = new jsdom.JSDOM(body);
   const items = [...html.window.document.querySelectorAll(".listing.js-listing")];
@@ -122,24 +136,29 @@ const parseListItem = (item) => {
     const advert = await download(result[i].url);
     const advertHtml = new jsdom.JSDOM(advert);
     const parameters = [...advertHtml.window.document.querySelector("dl.parameters").querySelectorAll(".parameter")];
-    const paramObject = parameters
-      .map((param) => {
-        return {
-          name: param.querySelector(".parameterName").textContent.trim(),
-          value: param.querySelector(".parameterValue").textContent.trim(),
-        };
-      })
-      .reduce((acc, curr) => {
-        return {
-          ...acc,
-          [curr.name]: curr.value,
-        };
-      }, {});
+    const paramObject = parameters.map(parseParams).reduce(convertParamsReducer, {});
+
     result[i] = {
       ...result[i],
       ...paramObject,
     };
   }
 
-  console.table(result);
+  const columns = Object.values(
+    result.map((item) => Object.keys(item)).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+  );
+  const csv =
+    '\ufeff' +
+    columns.join(",") +
+    "\r\n" +
+    result
+      .map((item) => {
+        return `${columns
+          .map((column) => (typeof item[column] === "number" ? item[column] : `"${item[column] || ""}"`))
+          .join(",")}`;
+      })
+      .join("\r\n");
+
+  fs.writeFileSync("result.json", JSON.stringify(result, null, 2));
+  fs.writeFileSync("result.csv", csv);
 })();
