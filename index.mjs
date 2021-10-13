@@ -19,11 +19,11 @@ String.prototype.hashCode = function () {
     hash = (hash << 5) - hash + chr;
     hash |= 0;
   }
-  return hash;
+  return Math.abs(hash);
 };
 
-async function download(url, cache = true) {
-  const fileName = `cache/${url.hashCode()}.html`;
+async function download(prefix, url, cache = true) {
+  const fileName = `cache/${prefix}-${url.hashCode()}.html`;
 
   if (cache && fs.existsSync(fileName)) {
     return fs.readFileSync(fileName).toString("utf-8");
@@ -124,16 +124,38 @@ const convertParamsReducer = (acc, curr) => {
   };
 };
 
-(async () => {
+const toCsv = (table) => {
+  const columns = Object.values(
+    table.map((item) => Object.keys(item)).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+  );
+  const csv =
+    "\ufeff" +
+    columns.join(",") +
+    "\r\n" +
+    table
+      .map((item) => {
+        return `${columns
+          .map((column) => (typeof item[column] === "number" ? item[column] : `"${item[column] || ""}"`))
+          .join(",")}`;
+      })
+      .join("\r\n");
+
+  return csv;
+};
+
+async function getPage(page) {
+  if (!page) return;
+
   const body = await download(
-    "https://ingatlan.com/lista/elado+haz+80-m2-felett+csak-kepes+pest-megye-buda-kornyeke+pest-megye-pest-kornyeke+budapest+pest-megye+budapest-pesti-oldal+budapest-budai-oldal+850-m2telek-alatt+csaladi-haz+konnyuszerkezetes-haz+3-szoba-felett+45-mFt-ig?page=1",
+    'list',
+    `https://ingatlan.com/lista/elado+haz+80-m2-felett+csak-kepes+pest-megye-buda-kornyeke+pest-megye-pest-kornyeke+budapest+pest-megye+budapest-pesti-oldal+budapest-budai-oldal+850-m2telek-alatt+csaladi-haz+konnyuszerkezetes-haz+3-szoba-felett+45-mFt-ig?page=${page}`,
   );
   const html = new jsdom.JSDOM(body);
   const items = [...html.window.document.querySelectorAll(".listing.js-listing")];
   const result = items.map(parseListItem);
 
   for (let i = 0; i < result.length; i++) {
-    const advert = await download(result[i].url);
+    const advert = await download('match', result[i].url);
     const advertHtml = new jsdom.JSDOM(advert);
     const parameters = [...advertHtml.window.document.querySelector("dl.parameters").querySelectorAll(".parameter")];
     const paramObject = parameters.map(parseParams).reduce(convertParamsReducer, {});
@@ -144,20 +166,20 @@ const convertParamsReducer = (acc, curr) => {
     };
   }
 
-  const columns = Object.values(
-    result.map((item) => Object.keys(item)).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-  );
-  const csv =
-    '\ufeff' +
-    columns.join(",") +
-    "\r\n" +
-    result
-      .map((item) => {
-        return `${columns
-          .map((column) => (typeof item[column] === "number" ? item[column] : `"${item[column] || ""}"`))
-          .join(",")}`;
-      })
-      .join("\r\n");
+  return result;
+}
+
+(async () => {
+  let counter = 1;
+  let result = [];
+  let singleResult;
+  do {
+    singleResult = await getPage(counter++);
+    result = [...result, ...singleResult];
+  } while (singleResult?.length >= 20);
+
+  // const result = [...(await getPage(1)), ...(await getPage(2))];
+  const csv = toCsv(result);
 
   fs.writeFileSync("result.json", JSON.stringify(result, null, 2));
   fs.writeFileSync("result.csv", csv);
