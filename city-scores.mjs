@@ -1,4 +1,4 @@
-export cityScores = {
+export default {
   "XX. kerület": 33.41,
   "XXIII. kerület": 20.65,
   "Szigetszentmiklós": 18.85,
@@ -47,5 +47,5 @@ export cityScores = {
   "Csörög": -11.24,
   "Szigetszentmárton": -13.78,
   "Majosháza": -16.5,
-  "Tápiószele": -19.9
-}
+  "Tápiószele": -19.9,
+};
