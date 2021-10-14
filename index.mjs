@@ -208,7 +208,7 @@ async function getPage(page) {
 }
 
 (async () => {
-  let counter = 1;
+  let counter = 41;
   let result = [];
   let seen = [];
   let singleResult;

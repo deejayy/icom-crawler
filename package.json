@@ -2,5 +2,8 @@
   "dependencies": {
     "jsdom": "^17.0.0",
     "node-fetch": "^3.0.0"
+  },
+  "scripts": {
+    "prepare": "mkdir cache || exit 0"
   }
 }
