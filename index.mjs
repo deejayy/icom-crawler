@@ -4,12 +4,6 @@ import jsdom from "jsdom";
 import cities from "./cities.mjs";
 import scoreTable from "./weights.mjs";
 
-String.prototype.strip = function () {
-  this.toLowerCase()
-    .replace(/[^0-9a-z]/gi, " ")
-    .replace(/ +/gi, "-");
-};
-
 String.prototype.hashCode = function () {
   let hash = 0,
     i,
@@ -216,12 +210,19 @@ async function getPage(page) {
 (async () => {
   let counter = 1;
   let result = [];
+  let seen = [];
   let singleResult;
 
   try {
     result = JSON.parse(fs.readFileSync("./result.json", "utf-8"));
   } catch {
     result = [];
+  }
+
+  try {
+    seen = JSON.parse(fs.readFileSync("./seen.json", "utf-8"));
+  } catch {
+    seen = [];
   }
 
   if (result.length === 0) {
@@ -232,9 +233,14 @@ async function getPage(page) {
     } while (singleResult?.length >= 20);
   }
 
-  result = result.map(scoring).sort((a, b) => (a.score > b.score ? -1 : 1));
+  result = result
+    .filter((item) => !seen.includes(item.id))
+    .map(scoring)
+    .sort((a, b) => (a.score > b.score ? -1 : 1));
+  seen = [...new Set([...seen, ...result.map((item) => item.id)])];
   const csv = toCsv(result);
 
+  fs.writeFileSync("seen.json", JSON.stringify(seen, null, 2));
   fs.writeFileSync("result.json", JSON.stringify(result, null, 2));
   fs.writeFileSync("result.csv", csv);
 })();

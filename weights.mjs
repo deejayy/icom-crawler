@@ -41,7 +41,7 @@ export default {
     "Ráckeve": -4.67,
     "Páty": -5.84,
     "Abony": -6.24,
-    "Dömsöd": -6.5,
+    "Dömsöd": -16.5,
     "Farmos": -8.47,
     "Kiskunlacháza": -9.35,
     "Szigetbecse": -9.9,
