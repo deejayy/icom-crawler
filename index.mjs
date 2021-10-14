@@ -101,12 +101,12 @@ const parseListItem = (item) => {
     id: item.getAttribute("data-id"),
     url: `https://ingatlan.com${item.querySelector(".listing__thumbnail").getAttribute("href")}`,
     pic: item.querySelector(".listing__image").getAttribute("src"),
-    picCount: item.querySelector(".listing__photos-count").textContent.trim() * 1,
     price: item.querySelector(".price__container .price").textContent.trim().replace(/ M Ft/gi, "") * 1,
     city,
     street,
     area: item.querySelector(".listing__data--area-size").textContent.replace(/ m² terület/gi, "") * 1,
     plot: item.querySelector(".listing__data--plot-size").textContent.replace(/ m² telek/gi, "") * 1,
+    picCount: item.querySelector(".listing__photos-count").textContent.trim() * 1,
     fullRooms,
     halfRooms,
   };
@@ -147,6 +147,7 @@ const toCsv = (table) => {
 
 const scoreTable = {
   "Ingatlan állapota": {
+    "befejezetlen": -50,
     "felújítandó": -50,
     "felújított": 0,
     "jó állapotú": 0,
@@ -154,7 +155,7 @@ const scoreTable = {
     "nincs megadva": 0,
     "új építésű": 10,
     "újszerű": 0,
-    "default": -20,
+    "default": 0,
   },
   "Építés éve": {
     "1950 előtt": -50,
@@ -173,15 +174,79 @@ const scoreTable = {
     "nincs megadva": 0,
     "default": 0,
   },
+  "Komfort": {
+    "duplakomfortos": 5,
+    "félkomfortos": -20,
+    "komfort nélküli": -50,
+    "komfortos": -10,
+    "nincs megadva": 0,
+    "összkomfortos": 0,
+    "default": 0,
+  },
+  "Fürdő és WC": {
+    "egy helyiségben": -20,
+    "külön helyiségben": 5,
+    "külön és egyben is": 10,
+    "nincs megadva": 0,
+    "default": 0,
+  },
+  "Parkolás": {
+    "nincs megadva": 0,
+    "teremgarázs hely - benne van az árban": 0,
+    "udvari beálló": 0,
+    "udvari beálló - benne van az árban": 5,
+    "utca, közterület": -12,
+    "utca, közterület - ingyenes": -10,
+    "önálló garázs": 0,
+    "önálló garázs - benne van az árban": 15,
+    "default": 0,
+  },
+  "Épület szintjei": {
+    "2": 0,
+    "3": -20,
+    "4": -50,
+    "5": -50,
+    "6": -50,
+    "földszintes": 10,
+    "nincs megadva": 0,
+    "default": 0,
+  },
+  "Pince": {
+    "nincs": 0,
+    "nincs megadva": 0,
+    "van": 10,
+    "default": 0,
+  },
+};
+
+const scoreHeating = (heating) => {
+  let heatScore = 0;
+  if (heating.match(/cirko/)) {
+    heatScore += 10;
+  }
+  if (heating.match(/padló/)) {
+    heatScore += 10;
+  }
+  if (heating.match(/házközponti/)) {
+    heatScore += 10;
+  }
+  if (heating.match(/fan-coil/)) {
+    heatScore += 10;
+  }
+  if (heating.match(/vegyes/)) {
+    heatScore -= 10;
+  }
 };
 
 const scoring = (item) => {
   const score = [
     (40 - item.price) / 2,
+    item.picCount / 5,
     (10 - (Math.abs(item.area - 80) / 100) * 10) * 1,
     (10 - (Math.abs(item.plot - 600) / 600) * 7) * 1,
     item.fullRooms >= 3 ? 5 + item.fullRooms / 2 - 2 + item.halfRooms / 2 : -20,
     cityScores[item.city] || 0,
+    scoreHeating(item["Fűtés"]),
     ...Object.keys(scoreTable).map((scoreCat) =>
       item[scoreCat] ? scoreTable[scoreCat][item[scoreCat]] || scoreTable[scoreCat]["default"] : 0,
     ),
@@ -229,7 +294,7 @@ async function getPage(page) {
   let singleResult;
 
   try {
-    result = JSON.parse(fs.readFileSync('./result.json', 'utf-8'));
+    result = JSON.parse(fs.readFileSync("./result.json", "utf-8"));
   } catch {
     result = [];
   }

@@ -48,4 +48,6 @@ export default {
   "Szigetszentmárton": -13.78,
   "Majosháza": -16.5,
   "Tápiószele": -19.9,
+  "Tápiószecső": -29.9,
+  "Inárcs": 6,
 };
