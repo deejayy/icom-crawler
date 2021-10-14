@@ -33,6 +33,37 @@ Valamint három eredményfájl keletkezik:
 - result.json: adatok json-ban
 - result.csv: adatok CSV-ben, excellel szépen kezelhető, szűrhető, stb.
 
+Ilyen az adat:
+```json
+  {
+    "score": 68.96666666666667,
+    "id": "31755441",
+    "url": "https://ingatlan.com/nagykoros-belvaros/elado+haz/csaladi-haz/31755441",
+    "pic": "https://ot.ingatlancdn.com/b8/6a/31755441_202205176_m.jpg",
+    "price": 15.9,
+    "city": "Nagykőrös",
+    "street": "Belváros",
+    "area": 90,
+    "plot": 632,
+    "picCount": 10,
+    "fullRooms": 3,
+    "halfRooms": 0,
+    "Ingatlan állapota": "nincs megadva",
+    "Komfort": "nincs megadva",
+    "Energiatanúsítvány": "nincs megadva",
+    "Épület szintjei": "földszintes",
+    "Fűtés": "vegyes tüzelésű kazán",
+    "Légkondicionáló": "nincs",
+    "Rezsiköltség": "nincs megadva",
+    "Akadálymentesített": "nincs megadva",
+    "Fürdő és WC": "külön helyiségben",
+    "Kilátás": "nincs megadva",
+    "Tetőtér": "nincs megadva",
+    "Pince": "nincs",
+    "Parkolás": "önálló garázs - benne van az árban"
+  }
+```
+
 # Varázslat
 
 Van benne egy súlyozott értékelő logika, személyre van szabva, de hangolható, `weights.mjs`-ben vannak a definíciók. Röviden: ezekkel a számokkal tudod a számolt "jóságát" egy ingatlannak beállítani. Ezen kívül van a kódban is egy score számoló.
