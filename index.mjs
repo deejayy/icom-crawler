@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import fs from "fs";
 import jsdom from "jsdom";
 import cities from "./cities.mjs";
-import cityScores from "./city-scores.mjs";
+import scoreTable from "./weights.mjs";
 
 String.prototype.strip = function () {
   this.toLowerCase()
@@ -145,80 +145,6 @@ const toCsv = (table) => {
   return csv;
 };
 
-const scoreTable = {
-  "Ingatlan állapota": {
-    "befejezetlen": -50,
-    "felújítandó": -50,
-    "felújított": 0,
-    "jó állapotú": 0,
-    "közepes állapotú": -30,
-    "nincs megadva": 0,
-    "új építésű": 10,
-    "újszerű": 0,
-    "default": 0,
-  },
-  "Építés éve": {
-    "1950 előtt": -50,
-    "1950 és 1980 között": -30,
-    "1981 és 2000 között": -20,
-    "2001 és 2010 között": 0,
-    "2012": 2,
-    "2013": 3,
-    "2015": 5,
-    "2016": 6,
-    "2017": 7,
-    "2018": 8,
-    "2019": 9,
-    "2020": 10,
-    "2021": 11,
-    "nincs megadva": 0,
-    "default": 0,
-  },
-  "Komfort": {
-    "duplakomfortos": 5,
-    "félkomfortos": -20,
-    "komfort nélküli": -50,
-    "komfortos": -10,
-    "nincs megadva": 0,
-    "összkomfortos": 0,
-    "default": 0,
-  },
-  "Fürdő és WC": {
-    "egy helyiségben": -20,
-    "külön helyiségben": 5,
-    "külön és egyben is": 10,
-    "nincs megadva": 0,
-    "default": 0,
-  },
-  "Parkolás": {
-    "nincs megadva": 0,
-    "teremgarázs hely - benne van az árban": 0,
-    "udvari beálló": 0,
-    "udvari beálló - benne van az árban": 5,
-    "utca, közterület": -12,
-    "utca, közterület - ingyenes": -10,
-    "önálló garázs": 0,
-    "önálló garázs - benne van az árban": 15,
-    "default": 0,
-  },
-  "Épület szintjei": {
-    "2": 0,
-    "3": -20,
-    "4": -50,
-    "5": -50,
-    "6": -50,
-    "földszintes": 10,
-    "nincs megadva": 0,
-    "default": 0,
-  },
-  "Pince": {
-    "nincs": 0,
-    "nincs megadva": 0,
-    "van": 10,
-    "default": 0,
-  },
-};
-
 const scoreHeating = (heating) => {
   let heatScore = 0;
   if (heating.match(/cirko/)) {
@@ -245,7 +171,6 @@ const scoring = (item) => {
     (10 - (Math.abs(item.area - 80) / 100) * 10) * 1,
     (10 - (Math.abs(item.plot - 600) / 600) * 7) * 1,
     item.fullRooms >= 3 ? 5 + item.fullRooms / 2 - 2 + item.halfRooms / 2 : -20,
-    cityScores[item.city] || 0,
     scoreHeating(item["Fűtés"]),
     ...Object.keys(scoreTable).map((scoreCat) =>
       item[scoreCat] ? scoreTable[scoreCat][item[scoreCat]] || scoreTable[scoreCat]["default"] : 0,
