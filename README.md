@@ -22,6 +22,12 @@ Keresési linket így keresd a kódban:
   );
 ```
 
+A számlálót (azaz, melyik találati oldalról kezdje a letöltést) se felejtsd el átírni:
+
+```js
+  let counter = 1;
+```
+
 Majd talán lesz felhasználóbarátabb megoldás is, most nekem így elég, de bátran jöhetnek a PR-ok.
 
 Futtatás közben végiglépked az ingatlan.com találati listáján és az oldalakon is, direkt nincs párhuzamosítva, hogy ne tiltson le az automatika (néha azért így is). Minden letölt, azaz ha van ötvenezer találat a beállított linken, akkor meg nem áll, míg nem végez. Ezért érdemes egy korrektül beállított keresőlinket adni neki. A fenti példa úgy 850 ingatlant fog végignézni (as of now).
